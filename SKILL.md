@@ -1,7 +1,7 @@
 ---
 name: creative-inspiration-hub
 slug: creative-inspiration-hub
-version: 0.2.0
+version: 1.2.0
 description: |
   Creative Inspiration Hub / 创意灵感孵化器.
   通过跨领域组合、灵感触发、创意评估和思维导图生成，帮助创意工作者突破瓶颈。
@@ -144,7 +144,7 @@ interface InspirationReport {
 
 ## 当前状态
 
-v0.1.0 MVP 骨架版本，所有功能返回 mock 数据。
+v1.2.0 本地规则引擎版本。当前功能使用内置领域词库和评分规则生成结构化创意输出，不依赖外部 API。它适合快速破题、发散方向、形成初筛清单；不应把评分当作市场验证或真实商业成功预测。
 
 ## 目录结构
 
@@ -152,12 +152,17 @@ v0.1.0 MVP 骨架版本，所有功能返回 mock 数据。
 creative-inspiration-hub/
 ├── SKILL.md          # 技能定义
 ├── clawhub.json     # 技能元数据
-├── package.json     # 依赖配置
+├── package.json     # 依赖配置与测试命令
 ├── handler.py       # 主逻辑入口
-├── engine/          # 创意引擎（预留）
-├── data/            # 数据文件（预留）
 └── scripts/         # 工具脚本
     └── test.py      # 自测脚本
+```
+
+## 验证
+
+```bash
+python3 -m py_compile handler.py scripts/test.py
+python3 scripts/test.py
 ```
 
 ## 使用示例

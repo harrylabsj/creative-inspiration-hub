@@ -2,6 +2,8 @@
 import json, uuid, time
 from typing import Dict, Any
 
+ENGINE_VERSION = "cih-v1.2"
+
 class InspirationHub:
     def __init__(self):
         self.session_id = str(uuid.uuid4())[:8]
@@ -31,7 +33,7 @@ class InspirationHub:
         elif rtype == "evaluation": result = self._eval_idea(request)
         elif rtype == "mindmap": result = self._gen_mindmap(request)
         else: result = {"error": f"Unknown: {rtype}"}
-        return {"success": True, "sessionId": f"session_{self.session_id}", **result, "metadata": {"requestType": rtype, "processingTime": int((time.time()-start)*1000), "model": "cih-v0.1"}}
+        return {"success": True, "sessionId": f"session_{self.session_id}", **result, "metadata": {"requestType": rtype, "processingTime": int((time.time()-start)*1000), "model": ENGINE_VERSION, "engine": "local-rule-based"}}
     
     def _gen_ideas(self, req):
         theme = req.get("theme", "通用创意")
@@ -40,7 +42,7 @@ class InspirationHub:
         for i in range(3):
             d = domains[i % len(domains)]
             dd = self.domains.get(d, self.domains["technology"])
-            ideas.append({"id": f"idea_{uuid.uuid4().hex[:6]}", "title": f"{theme}+{dd['concepts'][i]}", "description": f"结合{theme}和{d}", "origin": {"type": "combination", "sourceDomains": [d], "inspirationTriggers": dd["trends"]}, "evaluation": {"novelty": {"score": 7+(i%3), "rationale": "跨领域组合"}, "feasibility": {"score": 6+(i%4), "requirements": ["资源"], "challenges": ["难度"]}, "value": {"score": 7+(i%3), "beneficiaries": ["用户"]}, "originality": {"score": 6+(i%4)}, "overall": 7+(i%2)}, "potential": {"scalability": 7, "adaptability": 6, "sustainability": 7, "evolutionPaths": ["扩展", "升级"]}})
+            ideas.append({"id": f"idea_{uuid.uuid4().hex[:6]}", "title": f"{theme}+{dd['concepts'][i]}", "description": f"结合{theme}和{d}，用{dd['principles'][0]}原则重新设计体验。", "origin": {"type": "cross-domain-combination", "sourceDomains": [d], "inspirationTriggers": dd["trends"]}, "evaluation": {"novelty": {"score": 7+(i%3), "rationale": "跨领域组合"}, "feasibility": {"score": 6+(i%4), "requirements": ["用户访谈", "低保真原型", "小范围验证"], "challenges": ["场景选择", "实现复杂度"]}, "value": {"score": 7+(i%3), "beneficiaries": ["目标用户", "产品团队"]}, "originality": {"score": 6+(i%4)}, "overall": 7+(i%2)}, "implementation": {"first_step": "用一个核心使用场景做纸面原型", "validation": "找3-5个目标用户进行反应测试"}, "potential": {"scalability": 7, "adaptability": 6, "sustainability": 7, "evolutionPaths": ["扩展", "升级"]}})
         return {"ideas": ideas}
     
     def _cross_domain(self, req):

@@ -6,6 +6,33 @@ sys.path.insert(0, '.')
 
 from handler import handle_request
 
+
+def assert_contract(name, result):
+    assert result.get("success") is True, f"{name}: success flag missing"
+    assert result.get("sessionId", "").startswith("session_"), f"{name}: sessionId missing"
+    metadata = result.get("metadata", {})
+    assert metadata.get("model") == "cih-v1.2", f"{name}: model version mismatch"
+    assert metadata.get("engine") == "local-rule-based", f"{name}: engine metadata missing"
+
+    if name == "idea-generation":
+        ideas = result.get("ideas", [])
+        assert len(ideas) >= 3, "idea-generation: expected at least 3 ideas"
+        for idea in ideas:
+            assert "evaluation" in idea and "overall" in idea["evaluation"], "idea missing evaluation"
+            assert "implementation" in idea and "first_step" in idea["implementation"], "idea missing implementation first step"
+    elif name == "cross-domain":
+        combos = result.get("combinations", [])
+        assert combos and combos[0]["inspirations"]["conceptPairs"], "cross-domain missing concept pairs"
+    elif name == "inspiration-trigger":
+        assert len(result.get("triggers", [])) >= 5, "expected 5 trigger words"
+    elif name == "evaluation":
+        scores = result.get("evaluation", {}).get("scores", {})
+        assert {"novelty", "feasibility", "value", "originality", "overall"} <= set(scores), "evaluation score dimensions missing"
+    elif name == "mindmap":
+        mindmap = result.get("mindmap", {})
+        assert mindmap.get("structure", {}).get("nodeCount", 0) >= 3, "mindmap node count too small"
+
+
 def test_all_branches():
     print("=== Creative Inspiration Hub Full Test ===\n")
     
@@ -21,18 +48,9 @@ def test_all_branches():
     for name, req in tests:
         try:
             result = handle_request(req)
-            success = result.get("success", False)
-            has_data = (
-                result.get("ideas") or 
-                result.get("combinations") or 
-                result.get("triggers") or 
-                result.get("evaluation") or
-                result.get("mindmap")
-            )
-            status = "PASS" if success and has_data else "FAIL"
+            assert_contract(name, result)
+            status = "PASS"
             print(f"{name}: {status}")
-            if not has_data:
-                print(f"  Warning: {list(result.keys())}")
             results.append((name, status))
         except Exception as e:
             print(f"{name}: ERROR - {e}")
